@@ -110,13 +110,14 @@ class Transformer:
         result = self.statements_class(*body)
         self._finalize_target_node(result)
 
-        local_vars = list(local_vars - self._globals)
+        # LOVASB: Don't move globals on top
+        """local_vars = list(local_vars - self._globals)
         if len(local_vars) > 0:
             local_vars.sort()
             vars = JSVarStatement(local_vars,
                                   [None] * len(local_vars))
             self._finalize_target_node(vars)
-            result.transformed_args.insert(0, vars)
+            result.transformed_args.insert(0, vars)"""
 
         self.node_parent_map = None
 
@@ -293,6 +294,8 @@ def load_transformations(py_ast_module):
     # transformationsDict = {
     #     'NodeName': [...transformation functions...]
     # }
+    from scrippy import transformations
+    py_ast_module = transformations
     d = {}
     ast_names = list(python_ast_names())
     filenames = rfilter(
@@ -300,8 +303,9 @@ def load_transformations(py_ast_module):
         os.listdir(parent_of(py_ast_module.__file__)))
     for filename in filenames:
         if filename != '__init__.py':
-            mod_name = 'metapensiero.pj.transformations.%s' % \
+            mod_name = 'scrippy.transformations.%s' % \
                        filename.split('.')[0]
+            print(mod_name)
             __import__(mod_name)
             mod = sys.modules[mod_name]
             for name in dir(mod):
